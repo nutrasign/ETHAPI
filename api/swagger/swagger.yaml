@@ -1,0 +1,285 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: ETH-API
+host: localhost:8081
+# basePath prefixes all resource paths 
+basePath: /0.1
+# 
+schemes:
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+  /Accounts:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: transactionController
+    post:
+      description: Creates an ethereum account to manage transactions
+      # used as the method name of the controller
+      operationId: addAccount
+      parameters:
+        - in: body
+          name: account
+          required: true
+          description: account to onboard.
+          schema:
+            $ref: "#/definitions/AccountRequest"
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/AccountRequest"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /Accounts/{id}:
+    x-swagger-router-controller: transactionController
+    get:
+      description: get an account
+      operationId: getAccount
+      parameters:
+        - name: id
+          type: string
+          in: path
+          required: true
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/AccountResponse"
+        "404":
+          description: Not found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /Contracts:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: transactionController
+    post:
+      description: Stores a contract associated to the given user
+      # used as the method name of the controller
+      operationId: addContract
+      parameters:
+        - in: body
+          name: account
+          required: true
+          description: account to onboard.
+          schema:
+            $ref: "#/definitions/Contract"
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/Contract"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    get:
+      description: returns all contract from given user
+      # used as the method name of the controller
+      operationId: getAllContracts
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/Contracts"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /Contracts/{id}:
+    x-swagger-router-controller: transactionController
+    get:
+      description: returns contract in the provided address
+      operationId: getContract
+      parameters:
+        - name: id
+          type: string
+          in: path
+          required: true
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/Contract"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /Contracts/sendCall:
+    x-swagger-router-controller: transactionController
+    post:
+      description: sends a call for a contract function
+      operationId: sendCall
+      parameters:
+        - in: body
+          name: function call
+          required: true
+          description: function to call
+          schema:
+            $ref: "#/definitions/SendRequest"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/SendRequest"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /Contracts/sendTransaction:
+    x-swagger-router-controller: transactionController
+    post:
+      description: sends a transaction for a contract function
+      operationId: sendTransaction
+      parameters:
+        - in: body
+          name: send transaction
+          required: true
+          description: transaction send
+          schema:
+            $ref: "#/definitions/SendRequest"
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/TransactionInfo"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /CheckTxStatus{txHash}:
+    x-swagger-router-controller: transactionController
+    get:
+      description: Returns all information about the TX that the node has
+      operationId: checkTxStatus
+      parameters:
+        - name: txHash
+          type: string
+          in: path
+          required: true
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/TransactionInfo"
+        "404":
+          description: Not Found
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+definitions:
+  AccountRequest:
+    properties:
+        AccountName:
+          type: string
+        AccountAddress:
+          type: string
+        AccountPrivateKey:
+          type: string
+    required:
+      - AccountName
+      - AccountAddress
+      - AccountPrivateKey
+  AccountResponse:
+    properties:
+        AccountAddress:
+          type: string
+    required:
+      - AccountAddress
+  Contract:
+    properties:
+        abi:
+          type: array
+          items:
+            type: object
+        address:
+          type: string
+        name:
+          type: string
+  Contracts:
+    properties:
+      Contracts:
+        type: array
+        items:
+          $ref: "#/definitions/Contract"
+  TransactionInfo:
+    properties: 
+      transactionHash: 
+        type: "string"
+      transactionIndex: 
+        type: "number"
+      blockHash: 
+        type: "string"
+      blockNumber: 
+        type: "number"
+      gasUsed: 
+        type: "number"
+      cumulativeGasUsed: 
+        type: "number"
+      logs: 
+        type: "array"
+        items: 
+          type: "object"
+          properties: 
+            logIndex: 
+              type: "number"
+            transactionIndex: 
+              type: "number"
+            transactionHash: 
+              type: "string"
+            blockHash: 
+              type: "string"
+            blockNumber: 
+              type: "number"
+            address: 
+              type: "string"
+            data: 
+              type: "string"
+            type: 
+              type: "string"
+            id: 
+              type: "string"
+      status: 
+        type: "boolean"
+      logsBloom: 
+        type: "string"
+    required:
+      - transactionHash
+  ErrorResponse:
+    properties:
+      error:
+        type: string
+  SendRequest:
+    properties:
+      ContractId:
+        type: string
+      FunctionName:
+        type: string
+      ParamsArray:
+          type: array
+          items:
+            type: string
+    required:
+      - ContractId
+      - FunctionName
+      - ParamsArray
